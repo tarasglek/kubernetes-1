@@ -145,6 +145,12 @@ func (util *ISCSIUtil) AttachDisk(b iscsiDiskMounter) error {
 				glog.Errorf("iscsi: failed to attach disk:Error: %s (%v)", string(out), err)
 				continue
 			}
+			// if we don't force a rescan, attached lun may never show up
+			out, err = b.plugin.execCommand("iscsiadm", []string{"-m", "session", "--rescan"})
+			if err != nil {
+				glog.Errorf("iscsi: failed to rescan iscsi luns: Error: %s (%v)", string(out), err)
+				return err
+			}
 			exist = waitForPathToExist(devicePath, 10, iscsiTransport)
 			if !exist {
 				glog.Errorf("Could not attach disk: Timeout after 10s")
